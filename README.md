@@ -9,7 +9,7 @@ Dự án game 3D Casual / Puzzle phát triển trên nền tảng **Unity (URP)*
 | 🎮 1. In-Game Gameplay Demo | 🛠️ 2. Unity Editor & Scene Overview |
 | :--- | :--- |
 | Trải nghiệm cơ chế vẽ đường, xe di chuyển, nhặt xu và chiến thắng. | Cấu trúc Scene, Prefab Level trong Resources, Inspector và Scripts. |
-| 📺 **[▶️ BẤM VÀO ĐÂY ĐỂ XEM GAMEPLAY DEMO](https://github.com/hienvukhac/Park-Master/raw/master/Docs/gameplay.mp4)** | 📺 **[▶️ BẤM VÀO ĐÂY ĐỂ XEM EDITOR SCENE DEMO](https://github.com/hienvukhac/Park-Master/raw/master/Docs/unity-editor-scene-demo.mp4)** |
+| 📺 **[▶️ BẤM VÀO ĐÂY ĐỂ XEM GAMEPLAY DEMO](https://github.com/hienvukhac/Park-Master/blob/master/Docs/gameplay.mp4)** | 📺 **[▶️ BẤM VÀO ĐÂY ĐỂ XEM EDITOR SCENE DEMO](https://github.com/hienvukhac/Park-Master/blob/master/Docs/unity-editor-scene-demo.mp4)** |
 
 ---
 
