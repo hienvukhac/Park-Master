@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using ParkMaster.Data;
 
 public class CarShopManager : MonoBehaviour
 {
@@ -14,8 +15,8 @@ public class CarShopManager : MonoBehaviour
     private List<CarData> carList => carDatabase != null ? carDatabase.CarList : new List<CarData>();
 
     [Header("Lưới Grid & Prefab")]
-    [SerializeField] private Transform gridCarsContainer;   
-    [SerializeField] private GameObject carSlotPrefab;     
+    [SerializeField] private Transform gridCarsContainer;
+    [SerializeField] private GameObject carSlotPrefab;
 
     [Header("Phân trang (9 xe / trang)")]
     [SerializeField] private Button btnNextPage;
@@ -44,10 +45,8 @@ public class CarShopManager : MonoBehaviour
 
     private void Start()
     {
-        EnsureDatabase();
-
         int defaultId = (carList != null && carList.Count > 0) ? carList[0].Id : 1001;
-        selectedCarId = PlayerPrefs.GetInt("SelectedCarID", defaultId);
+        selectedCarId = SaveSystem.Current.GetInt(SaveKeys.SelectedCarId, defaultId);
 
         if (btnNextPage != null)
         {
@@ -83,8 +82,6 @@ public class CarShopManager : MonoBehaviour
 
     public void RefreshShop()
     {
-        EnsureDatabase();
-
         if (gridCarsContainer == null)
         {
             Debug.LogWarning("[CarShopManager] Chưa gán gridCarsContainer (Grid_Cars)!");
@@ -92,40 +89,51 @@ public class CarShopManager : MonoBehaviour
         }
 
         int defaultId = (carList != null && carList.Count > 0) ? carList[0].Id : 1001;
-        selectedCarId = PlayerPrefs.GetInt("SelectedCarID", defaultId);
-
-        foreach (Transform child in gridCarsContainer)
-        {
-            Destroy(child.gameObject);
-        }
-        activeSlots.Clear();
+        selectedCarId = SaveSystem.Current.GetInt(SaveKeys.SelectedCarId, defaultId);
 
         int startIndex = currentPage * CARS_PER_PAGE;
         int endIndex = Mathf.Min(startIndex + CARS_PER_PAGE, carList.Count);
+        int neededCount = Mathf.Max(0, endIndex - startIndex);
 
-        for (int i = startIndex; i < endIndex; i++)
+        activeSlots.Clear();
+        int existingChildCount = gridCarsContainer.childCount;
+
+        for (int i = 0; i < neededCount; i++)
         {
-            CarData car = carList[i];
+            CarData car = carList[startIndex + i];
             if (car == null) continue;
 
-            if (carSlotPrefab != null)
+            CarSlotUI slotUI = null;
+            if (i < existingChildCount)
+            {
+                Transform child = gridCarsContainer.GetChild(i);
+                child.gameObject.SetActive(true);
+                slotUI = child.GetComponent<CarSlotUI>();
+            }
+            else if (carSlotPrefab != null)
             {
                 try
                 {
                     GameObject slotObj = Instantiate(carSlotPrefab, gridCarsContainer);
-                    CarSlotUI slotUI = slotObj.GetComponent<CarSlotUI>();
-                    if (slotUI != null)
-                    {
-                        bool isSelected = (car.Id == selectedCarId);
-                        slotUI.Setup(car, isSelected, lockedCarSprite, OnCarSelected);
-                        activeSlots.Add(slotUI);
-                    }
+                    slotUI = slotObj.GetComponent<CarSlotUI>();
                 }
                 catch (Exception ex)
                 {
                     Debug.LogWarning($"[CarShopManager] Lỗi tạo slot xe {car.Name}: {ex.Message}");
                 }
             }
+
+            if (slotUI != null)
+            {
+                bool isSelected = (car.Id == selectedCarId);
+                slotUI.Setup(car, isSelected, lockedCarSprite, OnCarSelected);
+                activeSlots.Add(slotUI);
+            }
+        }
+
+        for (int i = neededCount; i < gridCarsContainer.childCount; i++)
+        {
+            gridCarsContainer.GetChild(i).gameObject.SetActive(false);
         }
 
         AutoResizeGridContainer();
@@ -164,8 +172,8 @@ public class CarShopManager : MonoBehaviour
     private void OnCarSelected(int carId)
     {
         selectedCarId = carId;
-        PlayerPrefs.SetInt("SelectedCarID", selectedCarId);
-        PlayerPrefs.Save();
+        SaveSystem.Current.SetInt(SaveKeys.SelectedCarId, selectedCarId);
+        SaveSystem.Current.Save();
 
         RefreshShop();
 

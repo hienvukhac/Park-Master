@@ -1,4 +1,5 @@
 using UnityEngine;
+using ParkMaster.Data;
 
 [System.Serializable]
 public class CarData
@@ -33,13 +34,13 @@ public class CarData
     public bool IsUnlocked()
     {
         if (isDefaultUnlocked) return true;
-        return PlayerPrefs.GetInt("Car_Unlocked" + id, 0) == 1;
+        return SaveSystem.Current.GetInt(SaveKeys.CarUnlocked(id), 0) == 1;
     }
 
     public void Unlock()
     {
-        PlayerPrefs.SetInt("Car_Unlocked" + id, 1);
-        PlayerPrefs.Save();
+        SaveSystem.Current.SetInt(SaveKeys.CarUnlocked(id), 1);
+        SaveSystem.Current.Save();
     }
-    
+
 }

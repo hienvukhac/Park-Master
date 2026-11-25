@@ -57,7 +57,7 @@ MonoBehaviour:
     defaultColorType: 5
   - id: 1008
     name: Lamborghini Aventador
-    icon: {fileID: 21300000, guid: 38cfbae098de5c848ae7364209b9115c, type: 3}
+    icon: {fileID: 21300000, guid: b76df70a05a7cf64cae16aa00d6fcb9b, type: 3}
     car3DPrefab: {fileID: 4262263017307949619, guid: a79e15fbc4b498b43b938baa32eb2c30, type: 3}
     isDefaultUnlocked: 0
     defaultColorType: 1

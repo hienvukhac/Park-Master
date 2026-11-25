@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(BoxCollider))]
 public class ParkingSlot : MonoBehaviour
@@ -47,7 +48,10 @@ public class ParkingSlot : MonoBehaviour
             boxCollider.isTrigger = true;
         }
 
-        GameManager.Instance.RegisterSlot(this);
+        if (GameManager.HasInstance)
+        {
+            GameManager.Instance.RegisterSlot(this);
+        }
 
         InitColors();
         ApplySlotVisuals();
@@ -108,7 +112,7 @@ public class ParkingSlot : MonoBehaviour
             }
         }
 
-        var images = this.GetComponentsInChildren<UnityEngine.UI.Image>(true);
+        var images = this.GetComponentsInChildren<Image>(true);
         foreach (var img in images)
         {
             if (img != null && !initialImageColors.ContainsKey(img))
@@ -120,14 +124,6 @@ public class ParkingSlot : MonoBehaviour
         if (textP != null)
         {
             initialTextColor = textP.color;
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (!GameManager.IsApplicationQuitting && GameManager.HasInstance)
-        {
-            GameManager.Instance.UnregisterSlot(this);
         }
     }
 
@@ -327,6 +323,35 @@ public class ParkingSlot : MonoBehaviour
                     CompleteParking(car);
                 }
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        transform.DOKill();
+        if (slotSpriteRenderers != null)
+        {
+            foreach (var sr in slotSpriteRenderers)
+            {
+                if (sr != null) sr.DOKill();
+            }
+        }
+        foreach (var r in initialMeshColors.Keys)
+        {
+            if (r != null && r.material != null)
+            {
+                r.material.DOKill();
+            }
+        }
+        foreach (var img in initialImageColors.Keys)
+        {
+            if (img != null) img.DOKill();
+        }
+        if (textP != null) textP.DOKill();
+
+        if (!GameManager.IsApplicationQuitting && GameManager.HasInstance)
+        {
+            GameManager.Instance.UnregisterSlot(this);
         }
     }
 }

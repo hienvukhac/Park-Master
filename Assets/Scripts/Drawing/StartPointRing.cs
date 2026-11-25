@@ -3,14 +3,14 @@ using UnityEngine;
 public class StartPointRing : MonoBehaviour
 {
     [Header("Kích thước vòng tròn")]
-    public float radius = 0.6f;        
-    public float ringWidth = 0.1f;      
-    public int segments = 50;           
+    public float radius = 0.65f;
+    public float ringWidth = 0.12f;
+    public int segments = 50;
 
     [Header("Hiệu ứng nhấp nháy (Pulsing)")]
-    public float pulseSpeed = 20f;     
-    public float minScale = 0.95f;     
-    public float maxScale = 1.18f;      
+    public float pulseSpeed = 10f;
+    public float minScale = 0.9f;
+    public float maxScale = 1.15f;
     public float minAlpha = 0.4f;
     public float maxAlpha = 1.0f;
 
@@ -20,12 +20,9 @@ public class StartPointRing : MonoBehaviour
 
     private void Awake()
     {
-        SetupRing();
-    }
+        ringLine = this.GetComponent<LineRenderer>();
+        if (ringLine == null) ringLine = gameObject.AddComponent<LineRenderer>();
 
-    private void SetupRing()
-    {
-        ringLine = this.gameObject.AddComponent<LineRenderer>();
         ringLine.useWorldSpace = false;
         ringLine.loop = true;
         ringLine.startWidth = ringWidth;
@@ -33,35 +30,77 @@ public class StartPointRing : MonoBehaviour
         ringLine.positionCount = segments;
         ringLine.numCornerVertices = 4;
         ringLine.numCapVertices = 4;
+        ringLine.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        ringLine.receiveShadows = false;
+        ringLine.sortingOrder = 50;
 
-        Material mat = new Material(Shader.Find("Sprites/Default"));
-        ringLine.material = mat;
+        EnsureMaterial();
 
         for (int i = 0; i < segments; i++)
         {
             float angle = i * Mathf.PI * 2f / segments;
             float x = Mathf.Cos(angle) * radius;
             float z = Mathf.Sin(angle) * radius;
-            ringLine.SetPosition(i, new Vector3(x, 0.03f, z));
+            ringLine.SetPosition(i, new Vector3(x, 0.05f, z));
         }
 
         ringLine.enabled = false;
     }
 
+    private Material runtimeMaterial;
 
     public void SetColor(Color color)
     {
         baseColor = color;
-        if (ringLine != null)
+        EnsureMaterial();
+        UpdateLineColor(baseColor);
+    }
+
+    private void EnsureMaterial()
+    {
+        if (ringLine == null) return;
+        if (runtimeMaterial != null) return;
+
+        if (car != null)
         {
-            ringLine.startColor = color;
-            ringLine.endColor = color;
-            if (ringLine.material != null)
+            LineRenderer carLine = car.GetComponentInChildren<LineRenderer>();
+            if (carLine != null && carLine.sharedMaterial != null)
             {
-                if (ringLine.material.HasProperty("_BaseColor")) ringLine.material.SetColor("_BaseColor", color);
-                if (ringLine.material.HasProperty("_Color")) ringLine.material.SetColor("_Color", color);
-                ringLine.material.color = color;
+                runtimeMaterial = new Material(carLine.sharedMaterial);
+                ringLine.material = runtimeMaterial;
+                return;
             }
+        }
+
+        if (ringLine.sharedMaterial == null)
+        {
+            Shader s = Shader.Find("Universal Render Pipeline/Unlit")
+                    ?? Shader.Find("Sprites/Default")
+                    ?? Shader.Find("Unlit/Color");
+            if (s != null)
+            {
+                runtimeMaterial = new Material(s);
+                ringLine.material = runtimeMaterial;
+            }
+        }
+        else if (Application.isPlaying)
+        {
+            runtimeMaterial = ringLine.material;
+        }
+    }
+
+    private void UpdateLineColor(Color c)
+    {
+        if (ringLine == null) return;
+        ringLine.startColor = c;
+        ringLine.endColor = c;
+
+        Material mat = runtimeMaterial != null ? runtimeMaterial : (Application.isPlaying ? ringLine.material : ringLine.sharedMaterial);
+        if (mat != null)
+        {
+            if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);
+            if (mat.HasProperty("_Color")) mat.SetColor("_Color", c);
+            mat.color = c;
         }
     }
 
@@ -69,8 +108,16 @@ public class StartPointRing : MonoBehaviour
     {
         if (car == null) return;
 
-        bool isCarAwayFromStart = Vector3.Distance(car.transform.position, car.startPosition) > 0.5f || car.isCrashed;
-        if (ringLine != null) ringLine.enabled = isCarAwayFromStart;
+        float dx = car.transform.position.x - car.startPosition.x;
+        float dz = car.transform.position.z - car.startPosition.z;
+        float sqrDist = dx * dx + dz * dz;
+
+        bool isCarAwayFromStart = sqrDist > 0.16f || car.IsCrashed;
+
+        if (ringLine != null && ringLine.enabled != isCarAwayFromStart)
+        {
+            ringLine.enabled = isCarAwayFromStart;
+        }
 
         if (isCarAwayFromStart)
         {
@@ -81,18 +128,16 @@ public class StartPointRing : MonoBehaviour
             float alpha = Mathf.Lerp(minAlpha, maxAlpha, t);
             Color c = baseColor;
             c.a = alpha;
+            UpdateLineColor(c);
+        }
+    }
 
-            if (ringLine != null)
-            {
-                ringLine.startColor = c;
-                ringLine.endColor = c;
-                if (ringLine.material != null)
-                {
-                    if (ringLine.material.HasProperty("_BaseColor")) ringLine.material.SetColor("_BaseColor", c);
-                    if (ringLine.material.HasProperty("_Color")) ringLine.material.SetColor("_Color", c);
-                    ringLine.material.color = c;
-                }
-            }
+    private void OnDestroy()
+    {
+        if (runtimeMaterial != null)
+        {
+            Destroy(runtimeMaterial);
+            runtimeMaterial = null;
         }
     }
 }

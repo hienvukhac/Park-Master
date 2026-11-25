@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using DG.Tweening;
+using ParkMaster.Data;
 
 public enum GamePlayState
 {
-    Drawing,     
-    Driving,    
-    Victory,     
-    Failed       
+    Drawing,
+    Driving,
+    Victory,
+    Failed
 }
 
 public class GameManager : MonoBehaviour
@@ -72,7 +74,6 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         EnsureCanvasScaler();
-        EnsureLevelManager();
     }
 
     private void EnsureCanvasScaler()
@@ -80,23 +81,11 @@ public class GameManager : MonoBehaviour
         Canvas canvas = FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
         if (canvas != null)
         {
-            var scaler = canvas.GetComponent<UnityEngine.UI.CanvasScaler>();
-            if (scaler == null) scaler = canvas.gameObject.AddComponent<UnityEngine.UI.CanvasScaler>();
-            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            var scaler = canvas.GetComponent<CanvasScaler>();
+            if (scaler == null) scaler = canvas.gameObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0f; 
-        }
-    }
-
-    private void EnsureLevelManager()
-    {
-        if (LevelManager.Instance == null)
-        {
-            LevelManager lm = FindFirstObjectByType<LevelManager>();
-            if (lm == null)
-            {
-                gameObject.AddComponent<LevelManager>();
-            }
+            scaler.matchWidthOrHeight = 0f;
         }
     }
 
@@ -124,8 +113,8 @@ public class GameManager : MonoBehaviour
         }
         allCars.Clear();
 
-        ParkingSlot[] foundSlots = (levelObj != null) 
-            ? levelObj.GetComponentsInChildren<ParkingSlot>(true) 
+        ParkingSlot[] foundSlots = (levelObj != null)
+            ? levelObj.GetComponentsInChildren<ParkingSlot>(true)
             : FindObjectsByType<ParkingSlot>(FindObjectsSortMode.None);
         allSlots = new List<ParkingSlot>(foundSlots);
 
@@ -200,7 +189,7 @@ public class GameManager : MonoBehaviour
             Transform carsParent = levelObj != null ? levelObj.transform : this.transform;
             CarDatabase db = GetActiveCarDatabase();
 
-            int selectedId = PlayerPrefs.GetInt("SelectedCarID", 1001);
+            int selectedId = SaveSystem.Current.GetInt(SaveKeys.SelectedCarId, 1001);
             CarData playerCarData = (db != null && db.CarList != null && db.CarList.Count > 0)
                                   ? (db.CarList.Find(c => c.Id == selectedId) ?? db.CarList[0])
                                   : null;
@@ -226,20 +215,11 @@ public class GameManager : MonoBehaviour
 
                 if (prefabToSpawn == null)
                 {
-                    prefabToSpawn = defaultCarPrefab 
-                                 ?? Resources.Load<GameObject>("DefaultCar") 
+                    prefabToSpawn = defaultCarPrefab
+                                 ?? Resources.Load<GameObject>("DefaultCar")
                                  ?? Resources.Load<GameObject>("Audi R8 Lievery 1")
                                  ?? Resources.Load<GameObject>("Audi R8");
                 }
-
-#if UNITY_EDITOR
-                if (prefabToSpawn == null)
-                {
-                    prefabToSpawn = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/CarS/Audi R8 Lievery 1.prefab")
-                                 ?? UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/CarS/Audi R8.prefab")
-                                 ?? UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Models/Cars/Audi R8/Models/Audi R8.fbx");
-                }
-#endif
 
                 if (prefabToSpawn != null)
                 {
@@ -513,7 +493,38 @@ public class GameManager : MonoBehaviour
         if (currentState == GamePlayState.Victory) return;
         currentState = GamePlayState.Victory;
         Debug.Log("<color=#00FF7F>🏆🎉 LEVEL CLEARED! TẤT CẢ XE ĐÃ VỀ ĐÍCH THÀNH CÔNG! 🎉🏆</color>");
+
+        SaveLevelProgress();
+
         OnLevelVictoryEvent?.Invoke();
+    }
+
+    private void SaveLevelProgress()
+    {
+        if (LevelManager.Instance == null) return;
+
+        int levelIndex = LevelManager.Instance.CurrentLevel;
+
+        float totalLength = 0f;
+        foreach (var car in allCars)
+        {
+            if (car == null) continue;
+            var pathHandle = car.GetComponent<CarPathHandle>();
+            if (pathHandle != null)
+                totalLength += pathHandle.TotalDrawDistance;
+        }
+
+        int stars;
+        if      (totalLength <= 8f)  stars = 3;
+        else if (totalLength <= 15f) stars = 2;
+        else                         stars = 1;
+
+        LevelScrollManager.SaveLevelResult(levelIndex, stars, totalLength);
+
+        int nextLevel = levelIndex + 1;
+        LevelScrollManager.UnlockNextLevel(nextLevel);
+
+        Debug.Log($"<color=#FFD700>[GameManager] Kết quả Level {levelIndex}: {stars} sao, tổng đường vẽ = {totalLength:F1}m</color>");
     }
 
     public void OnCarCrashed(CarController car1, CarController car2 = null)

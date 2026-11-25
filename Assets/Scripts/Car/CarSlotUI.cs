@@ -80,15 +80,9 @@ public class CarSlotUI : MonoBehaviour
             {
                 carIconImage.gameObject.SetActive(true);
 
-                if (data.Icon != null)
-                {
-                    carIconImage.sprite = data.Icon;
-                    carIconImage.color = Color.white;
-                }
-                else
-                {
-                    carIconImage.color = data.CarColor;
-                }
+                carIconImage.sprite = data.Icon;
+                carIconImage.color = (data.Icon != null) ? Color.white : data.CarColor;
+                carIconImage.SetAllDirty();
             }
 
             if (lockIconImage != null)
@@ -98,40 +92,31 @@ public class CarSlotUI : MonoBehaviour
         }
         else
         {
+
             Sprite lockSp = lockedSprite;
             if (lockSp == null)
-            {
                 lockSp = Resources.Load<Sprite>("car-lock-icon");
-#if UNITY_EDITOR
-                if (lockSp == null)
-                {
-                    lockSp = UnityEditor.AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Icons/car-lọck-icon.png");
-                }
-#endif
-            }
-
-            if (carIconImage != null)
-            {
-                carIconImage.gameObject.SetActive(true);
-                if (lockSp != null)
-                {
-                    carIconImage.sprite = lockSp;
-                    carIconImage.color = Color.white;
-                }
-                else
-                {
-                    carIconImage.color = new Color(0.4f, 0.4f, 0.4f, 0.8f);
-                }
-            }
 
             if (lockIconImage != null)
             {
+
                 lockIconImage.gameObject.SetActive(true);
                 if (lockSp != null)
                 {
                     lockIconImage.sprite = lockSp;
                     lockIconImage.color = Color.white;
                 }
+
+                if (carIconImage != null)
+                    carIconImage.gameObject.SetActive(false);
+            }
+            else if (carIconImage != null)
+            {
+
+                carIconImage.gameObject.SetActive(true);
+                carIconImage.sprite = lockSp;
+                carIconImage.color = (lockSp != null) ? Color.white : new Color(0.4f, 0.4f, 0.4f, 0.8f);
+                carIconImage.SetAllDirty();
             }
         }
 
@@ -145,9 +130,10 @@ public class CarSlotUI : MonoBehaviour
             slotButton.onClick.RemoveAllListeners();
             slotButton.onClick.AddListener(() =>
             {
-                if (isUnlocked)
+
+                if (currentCarData != null && currentCarData.IsUnlocked())
                 {
-                    onSelectCallback?.Invoke(data.Id);
+                    onSelectCallback?.Invoke(currentCarData.Id);
                 }
                 else
                 {

@@ -20,9 +20,17 @@ public class CarMenuUI : MonoBehaviour
     private Tween fadeTween;
     private bool isOpen = false;
     public bool IsOpen => isOpen;
+    public static CarMenuUI Instance { get; private set; }
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+
         SetupComponents();
         HideImmediate();
     }
@@ -46,42 +54,6 @@ public class CarMenuUI : MonoBehaviour
         {
             btnClose.onClick.RemoveListener(CloseMenu);
             btnClose.onClick.AddListener(CloseMenu);
-        }
-    }
-
-    private void Update()
-    {
-        if (GetPointerDown(out Vector2 screenPos))
-        {
-            Camera cam = null;
-            Canvas canvas = GetComponentInParent<Canvas>() ?? FindFirstObjectByType<Canvas>();
-            if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
-            {
-                cam = canvas.worldCamera ?? Camera.main;
-            }
-
-            if (!isOpen)
-            {
-                if (btnOpenCarShop != null && btnOpenCarShop.gameObject.activeInHierarchy)
-                {
-                    RectTransform rt = btnOpenCarShop.transform as RectTransform;
-                    if (rt != null && RectTransformUtility.RectangleContainsScreenPoint(rt, screenPos, cam))
-                    {
-                        OpenMenu();
-                    }
-                }
-            }
-            else
-            {
-                if (btnClose != null && btnClose.gameObject.activeInHierarchy)
-                {
-                    RectTransform rt = btnClose.transform as RectTransform;
-                    if (rt != null && RectTransformUtility.RectangleContainsScreenPoint(rt, screenPos, cam))
-                    {
-                        CloseMenu();
-                    }
-                }
-            }
         }
     }
 
@@ -161,7 +133,7 @@ public class CarMenuUI : MonoBehaviour
 
             scaleTween = popupTransform.DOScale(new Vector3(0.85f, 0.85f, 1f), animDuration * 0.8f).SetEase(Ease.InBack).SetUpdate(true).OnComplete(() =>
             {
-                LineDrawer.IsDrawingBlocked = false;
+                CheckUnblockDrawing();
                 if (menuPanel != null) menuPanel.SetActive(false);
             });
         }
@@ -169,7 +141,7 @@ public class CarMenuUI : MonoBehaviour
         {
             if (canvasGroup != null) canvasGroup.alpha = 0f;
             if (menuPanel != null) menuPanel.SetActive(false);
-            LineDrawer.IsDrawingBlocked = false;
+            CheckUnblockDrawing();
         }
     }
 
@@ -191,37 +163,22 @@ public class CarMenuUI : MonoBehaviour
             menuPanel.SetActive(false);
         }
 
-        LineDrawer.IsDrawingBlocked = false;
+        CheckUnblockDrawing();
+    }
+
+    private void CheckUnblockDrawing()
+    {
+        var levelSelect = LevelSelectUI.Instance != null ? LevelSelectUI.Instance : FindFirstObjectByType<LevelSelectUI>();
+        if (levelSelect == null || !levelSelect.IsOpen)
+        {
+            LineDrawer.IsDrawingBlocked = false;
+        }
     }
 
     private void KillTweens()
     {
         if (scaleTween != null && scaleTween.IsActive()) scaleTween.Kill();
         if (fadeTween != null && fadeTween.IsActive()) fadeTween.Kill();
-    }
-
-    private bool GetPointerDown(out Vector2 screenPos)
-    {
-        if (Pointer.current != null && Pointer.current.press.wasPressedThisFrame)
-        {
-            screenPos = Pointer.current.position.ReadValue();
-            return true;
-        }
-
-        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
-        {
-            screenPos = Touchscreen.current.primaryTouch.position.ReadValue();
-            return true;
-        }
-
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            screenPos = Mouse.current.position.ReadValue();
-            return true;
-        }
-
-        screenPos = Vector2.zero;
-        return false;
     }
 
     private void OnDestroy()

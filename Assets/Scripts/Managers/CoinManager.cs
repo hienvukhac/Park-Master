@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using DG.Tweening;
+using ParkMaster.Data;
 
 public class CoinManager : MonoBehaviour
 {
@@ -109,15 +110,9 @@ public class CoinManager : MonoBehaviour
 
         if (saveToPlayerPrefs)
         {
-            totalCoins = PlayerPrefs.GetInt(playerPrefsKey, 0);
+            totalCoins = SaveSystem.Current.GetInt(playerPrefsKey, 0);
         }
 
-        UpdateCoinTextInstant();
-    }
-
-    private void Start()
-    {
-        FindUIReferences();
         UpdateCoinTextInstant();
     }
 
@@ -125,38 +120,12 @@ public class CoinManager : MonoBehaviour
     {
         if (canvas == null)
         {
-            canvas = FindFirstObjectByType<Canvas>();
-        }
-
-        if (coinCountText == null)
-        {
-            GameObject coinValObj = GameObject.Find("CoinValue");
-            if (coinValObj != null)
-            {
-                coinCountText = coinValObj.GetComponent<TextMeshProUGUI>();
-            }
-            else
-            {
-                coinCountText = FindFirstObjectByType<TextMeshProUGUI>();
-            }
+            canvas = FindFirstObjectByType<Canvas>(FindObjectsInactive.Include);
         }
 
         if (coinCountText != null)
         {
             originalTextColor = coinCountText.color;
-        }
-
-        if (targetIconRect == null)
-        {
-            GameObject coinIconObj = GameObject.Find("CoinIcon");
-            if (coinIconObj != null)
-            {
-                targetIconRect = coinIconObj.GetComponent<RectTransform>();
-            }
-            else if (coinCountText != null)
-            {
-                targetIconRect = coinCountText.rectTransform;
-            }
         }
 
         if (coinSprite == null && targetIconRect != null)
@@ -242,19 +211,47 @@ public class CoinManager : MonoBehaviour
         });
     }
 
+    private bool isDirty = false;
+
     public void AddCoins(int amount)
     {
         totalCoins += amount;
 
         if (saveToPlayerPrefs)
         {
-            PlayerPrefs.SetInt(playerPrefsKey, totalCoins);
-            PlayerPrefs.Save();
+            SaveSystem.Current.SetInt(playerPrefsKey, totalCoins);
+            isDirty = true;
         }
 
         PlayPunchEffect();
         PlayCollectSound();
         UpdateCoinTextInstant();
+    }
+
+    public void SaveCoinsIfDirty()
+    {
+        if (isDirty && saveToPlayerPrefs)
+        {
+            SaveSystem.Current.Save();
+            isDirty = false;
+        }
+    }
+
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus) SaveCoinsIfDirty();
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveCoinsIfDirty();
+    }
+
+    private void OnDestroy()
+    {
+        SaveCoinsIfDirty();
+        if (textPunchTween != null && textPunchTween.IsActive()) textPunchTween.Kill();
+        if (iconPunchTween != null && iconPunchTween.IsActive()) iconPunchTween.Kill();
     }
 
     private void PlayPunchEffect()
@@ -316,8 +313,8 @@ public class CoinManager : MonoBehaviour
         totalCoins = Mathf.Max(0, newAmount);
         if (saveToPlayerPrefs)
         {
-            PlayerPrefs.SetInt(playerPrefsKey, totalCoins);
-            PlayerPrefs.Save();
+            SaveSystem.Current.SetInt(playerPrefsKey, totalCoins);
+            isDirty = true;
         }
         UpdateCoinTextInstant();
     }
@@ -325,11 +322,11 @@ public class CoinManager : MonoBehaviour
     [ContextMenu("Reset All Saved Coins")]
     public void ResetAllSavedCoins()
     {
-        PlayerPrefs.DeleteKey(playerPrefsKey);
-        PlayerPrefs.Save();
+        SaveSystem.Current.DeleteKey(playerPrefsKey);
+        SaveSystem.Current.Save();
         totalCoins = 0;
         UpdateCoinTextInstant();
-        Debug.Log("<color=yellow>💰 [CoinManager] Đã đặt lại tổng số xu về 0!</color>");
+        Debug.Log("<color=yellow>[CoinManager] Total coins reset to 0.</color>");
     }
 
     private AudioClip CreateProceduralCoinChime()

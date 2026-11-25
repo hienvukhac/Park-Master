@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using ParkMaster.Data;
 
 public class LevelManager : MonoBehaviour
 {
@@ -39,7 +40,7 @@ public class LevelManager : MonoBehaviour
 
     private void Start()
     {
-        currentLevel = alwaysStartFromLevel1 ? 1 : PlayerPrefs.GetInt("ParkMaster_CurrentLevel", 1);
+        currentLevel = alwaysStartFromLevel1 ? 1 : SaveSystem.Current.GetInt(SaveKeys.CurrentLevel, 1);
         LoadLevel(currentLevel);
     }
 
@@ -47,47 +48,8 @@ public class LevelManager : MonoBehaviour
     {
         if (levelText == null)
         {
-            GameObject hudObj = GameObject.Find("HUD") ?? GameObject.Find("HUB");
-            if (hudObj != null)
-            {
-                Transform tLevel = hudObj.transform.Find("Level");
-                if (tLevel != null)
-                {
-                    levelText = tLevel.GetComponent<TextMeshProUGUI>();
-                }
-                else
-                {
-                    var tmps = hudObj.GetComponentsInChildren<TextMeshProUGUI>(true);
-                    foreach (var t in tmps)
-                    {
-                        if (t != null && t.gameObject.name.ToLower().Contains("level"))
-                        {
-                            levelText = t;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (levelText == null)
-            {
-                TextMeshProUGUI[] allTmps = FindObjectsByType<TextMeshProUGUI>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-                foreach (var t in allTmps)
-                {
-                    if (t == null) continue;
-                    string n = t.gameObject.name.ToLower();
-                    if (n.Contains("complete") || n.Contains("victory") || n.Contains("shop") || n.Contains("coin") || n.Contains("card"))
-                    {
-                        continue;
-                    }
-
-                    if (n == "level" || n == "txt_level" || n == "leveltext" || n == "txtlevel")
-                    {
-                        levelText = t;
-                        break;
-                    }
-                }
-            }
+            Debug.LogWarning("<color=yellow>[LevelManager] Chưa gán 'Level Text' trong Inspector!</color>");
+            return;
         }
 
         if (levelPrefabs == null || levelPrefabs.Count == 0)
@@ -99,25 +61,6 @@ public class LevelManager : MonoBehaviour
                 levelPrefabs.Sort((a, b) => string.Compare(a.name, b.name, System.StringComparison.OrdinalIgnoreCase));
             }
         }
-
-#if UNITY_EDITOR
-        if (levelPrefabs == null || levelPrefabs.Count == 0)
-        {
-            levelPrefabs = new List<GameObject>();
-            string[] guids = UnityEditor.AssetDatabase.FindAssets("Level_ t:Prefab", new[] { "Assets/Prefabs/Levels", "Assets/Resources/Levels" });
-            foreach (var g in guids)
-            {
-                string path = UnityEditor.AssetDatabase.GUIDToAssetPath(g);
-                GameObject p = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
-                if (p != null && !levelPrefabs.Contains(p))
-                {
-                    levelPrefabs.Add(p);
-                }
-            }
-
-            levelPrefabs.Sort((a, b) => string.Compare(a.name, b.name, System.StringComparison.OrdinalIgnoreCase));
-        }
-#endif
     }
 
     public int GetTotalLevelsCount()
@@ -139,8 +82,8 @@ public class LevelManager : MonoBehaviour
         }
 
         currentLevel = Mathf.Max(1, levelNum);
-        PlayerPrefs.SetInt("ParkMaster_CurrentLevel", currentLevel);
-        PlayerPrefs.Save();
+        SaveSystem.Current.SetInt(SaveKeys.CurrentLevel, currentLevel);
+        SaveSystem.Current.Save();
 
         UpdateLevelText();
 
@@ -159,22 +102,9 @@ public class LevelManager : MonoBehaviour
         }
         else
         {
-            prefabToSpawn = Resources.Load<GameObject>($"Levels/Level_{currentLevel:00}") 
+            prefabToSpawn = Resources.Load<GameObject>($"Levels/Level_{currentLevel:00}")
                          ?? Resources.Load<GameObject>($"Levels/Level_{currentLevel}");
         }
-
-#if UNITY_EDITOR
-        if (prefabToSpawn == null)
-        {
-            string pPath = $"Assets/Prefabs/Levels/Level_{currentLevel:00}.prefab";
-            prefabToSpawn = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(pPath);
-            if (prefabToSpawn == null)
-            {
-                pPath = $"Assets/Prefabs/Levels/Level_{currentLevel}.prefab";
-                prefabToSpawn = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(pPath);
-            }
-        }
-#endif
 
         if (prefabToSpawn != null)
         {

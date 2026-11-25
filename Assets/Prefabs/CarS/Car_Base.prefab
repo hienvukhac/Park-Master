@@ -11,7 +11,12 @@ GameObject:
   - component: {fileID: 6953257258224164194}
   - component: {fileID: 8747931785378068946}
   - component: {fileID: 3265685700490699666}
-  - component: {fileID: 2927517099244856650}
+  - component: {fileID: 9136692808807249683}
+  - component: {fileID: 8458319827315530619}
+  - component: {fileID: 141367113792469350}
+  - component: {fileID: 7094935309140597732}
+  - component: {fileID: 364935512163304871}
+  - component: {fileID: 6988974669533026350}
   m_Layer: 0
   m_Name: Car_Base
   m_TagString: Untagged
@@ -84,7 +89,80 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &2927517099244856650
+--- !u!114 &9136692808807249683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819890998686988298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f51398af3a8d9ae43a8e752108becf54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarMovement
+  speed: 8
+  rotationSpeed: 12
+--- !u!114 &8458319827315530619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819890998686988298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d68233fc464153e4f94a162df8cce1d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarPathHandle
+  lineRenderer: {fileID: 0}
+  pathPoints: []
+--- !u!114 &141367113792469350
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819890998686988298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a02796b1cecba3346b33f5734fe60a12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarVisual
+  bodyRenderer: {fileID: 0}
+  carColorType: 1
+  customCarColor: {r: 0, g: 0, b: 0, a: 0}
+--- !u!114 &7094935309140597732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819890998686988298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8270ba553c782044905ec1f317cb591, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarrAnimation
+  idleDuration: 0.35
+  stretchY: 0.15
+  squashXZ: 0.05
+  flyDuration: 0.6
+  arcHeight: 1.6
+--- !u!114 &364935512163304871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1819890998686988298}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 463e3ddb475208b45a095575135ba7a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CarCollision
+  crashFxPrefab: {fileID: 6929291529576959355, guid: 00f6ab96d8ea69e43a8371a94d0e64f2, type: 3}
+--- !u!114 &6988974669533026350
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -96,19 +174,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1150044437ab4f6419e8f02bb70c7dd9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CarController
-  moveSpeed: 8
-  rotateSpeed: 15
-  crashFxPrefab: {fileID: 6929291529576959355, guid: 00f6ab96d8ea69e43a8371a94d0e64f2, type: 3}
-  flyDuration: 0.6
-  arcHeight: 1.5
-  idleDuration: 0.35
-  stretchY: 0.15
-  squashXZ: 0.05
-  bodyRenderer: {fileID: 0}
-  carColorType: 1
-  customCarColor: {r: 0, g: 0, b: 0, a: 0}
-  lineRenderer: {fileID: 7913622861428592539}
-  pathPoints: []
+  <Movement>k__BackingField: {fileID: 0}
+  <PathHandler>k__BackingField: {fileID: 0}
+  <Visual>k__BackingField: {fileID: 0}
+  <Animation>k__BackingField: {fileID: 0}
+  <Collision>k__BackingField: {fileID: 0}
   startPosition: {x: 0, y: 0, z: 0}
   startRotation: {x: 0, y: 0, z: 0, w: 0}
   currentSlot: {fileID: 0}

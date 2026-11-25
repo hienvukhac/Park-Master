@@ -42,33 +42,13 @@ public class LevelSelectUI : MonoBehaviour
     private void SetupComponents()
     {
         if (levelSelectedPanel == null)
-        {
-            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var canvas in allCanvases)
-            {
-                Transform[] transforms = canvas.GetComponentsInChildren<Transform>(true);
-                foreach (var t in transforms)
-                {
-                    string n = t.name.ToLower();
-                    if (n == "levelselected_panel" || n == "levelselect_panel" || n == "levelselectedpanel")
-                    {
-                        levelSelectedPanel = t.gameObject;
-                        break;
-                    }
-                }
-                if (levelSelectedPanel != null) break;
-            }
-
-            if (levelSelectedPanel == null)
-                levelSelectedPanel = this.gameObject;
-        }
+            levelSelectedPanel = this.gameObject;
 
         if (popupTransform == null && levelSelectedPanel != null)
         {
-            Transform found = levelSelectedPanel.transform.Find("Popup_Window") 
-                           ?? levelSelectedPanel.transform.Find("Popup") 
-                           ?? levelSelectedPanel.transform.Find("Window")
-                           ?? levelSelectedPanel.transform.Find("Panel");
+            Transform found = levelSelectedPanel.transform.Find("Popup_Window")
+                           ?? levelSelectedPanel.transform.Find("Popup")
+                           ?? levelSelectedPanel.transform.Find("Window");
             popupTransform = found != null ? found : levelSelectedPanel.transform;
         }
 
@@ -82,50 +62,24 @@ public class LevelSelectUI : MonoBehaviour
 
     public void SetupButtons()
     {
-        if (btnMenuLevel == null)
-        {
-            Canvas[] allCanvases = FindObjectsByType<Canvas>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var canvas in allCanvases)
-            {
-                Button[] allButtons = canvas.GetComponentsInChildren<Button>(true);
-                foreach (var b in allButtons)
-                {
-                    string n = b.gameObject.name.ToLower();
-                    if (n == "btn_menulevel" || n == "btnmenulevel" || n == "btn_menu_level")
-                    {
-                        btnMenuLevel = b;
-                        break;
-                    }
-                }
-                if (btnMenuLevel != null) break;
-            }
-        }
-
         if (btnMenuLevel != null)
         {
             btnMenuLevel.onClick.RemoveListener(OpenMenu);
             btnMenuLevel.onClick.AddListener(OpenMenu);
         }
-
-        if (btnCloseLevel == null)
+        else
         {
-            Transform rootSearch = popupTransform != null ? popupTransform : (levelSelectedPanel != null ? levelSelectedPanel.transform : this.transform);
-            Button[] closeButtons = rootSearch.GetComponentsInChildren<Button>(true);
-            foreach (var b in closeButtons)
-            {
-                string n = b.gameObject.name.ToLower();
-                if (n == "btn_close_level" || n == "btncloselevel" || n == "btn_close" || n == "btn_x")
-                {
-                    btnCloseLevel = b;
-                    break;
-                }
-            }
+            Debug.LogWarning("[LevelSelectUI] Chưa gán 'Btn Menu Level' trong Inspector!");
         }
 
         if (btnCloseLevel != null)
         {
             btnCloseLevel.onClick.RemoveListener(CloseMenu);
             btnCloseLevel.onClick.AddListener(CloseMenu);
+        }
+        else
+        {
+            Debug.LogWarning("[LevelSelectUI] Chưa gán 'Btn Close Level' trong Inspector!");
         }
     }
 
@@ -167,6 +121,10 @@ public class LevelSelectUI : MonoBehaviour
             canvasGroup.alpha = 0.5f;
             fadeTween = canvasGroup.DOFade(1f, animDuration).SetUpdate(true);
         }
+
+        var scrollMgr = GetComponentInChildren<LevelScrollManager>(true)
+                     ?? FindFirstObjectByType<LevelScrollManager>(FindObjectsInactive.Include);
+        if (scrollMgr != null) scrollMgr.RefreshCards();
     }
 
     public void CloseMenu()
