@@ -1,59 +1,87 @@
-# 🚗 Park Master 3D - Unity Puzzle Game
+# Park Master 3D (Unity)
 
-Dự án game 3D Casual / Puzzle phát triển trên nền tảng **Unity (URP)**. Người chơi chạm vuốt vẽ quỹ đạo di chuyển để điều khiển các xe đỗ vào đúng ô màu tương ứng, tính toán thời gian tránh va chạm, thu thập tiền xu và mở khóa xe mới trong cửa hàng.
+A 3D hyper-casual puzzle game built with **Unity 6 (6000.3.21f1)** and **URP**, inspired by *Park Master*. Players draw real-time paths for color-coded vehicles to navigate obstacles, collect coins, and park safely in matching slots without colliding.
 
 ---
 
-## 🎬 Video Demo & Gameplay Showcase
+## Showcase
 
-| 🎮 1. In-Game Gameplay Demo | 🛠️ 2. Unity Editor & Scene Overview |
+| 1. In-Game Gameplay Demo | 2. Unity Editor & Scene Overview |
 | :---: | :---: |
-| Trải nghiệm cơ chế vẽ đường, xe di chuyển, nhặt xu và chiến thắng. | Cấu trúc Scene, Prefab Level trong Resources, Inspector và Scripts. |
+| Real-time path drawing, vehicle movement, coin pickups, and victory flow. | Scene hierarchy, `Resources/Levels` prefabs, Inspector setup, and scripts. |
 | [![Gameplay Demo](https://img.youtube.com/vi/QSecaZ4t8sw/hqdefault.jpg)](https://www.youtube.com/shorts/QSecaZ4t8sw) | [![Editor Demo](https://img.youtube.com/vi/jtv_oFVWSqc/hqdefault.jpg)](https://www.youtube.com/watch?v=jtv_oFVWSqc) |
-| 📺 [▶️ BẤM VÀO ĐÂY ĐỂ XEM TRÊN YOUTUBE](https://www.youtube.com/shorts/QSecaZ4t8sw) | 📺 [▶️ BẤM VÀO ĐÂY ĐỂ XEM TRÊN YOUTUBE](https://www.youtube.com/watch?v=jtv_oFVWSqc) |
+| [Watch on YouTube](https://www.youtube.com/shorts/QSecaZ4t8sw) | [Watch on YouTube](https://www.youtube.com/watch?v=jtv_oFVWSqc) |
+
+Local video files are also available in [Docs/gameplay.mp4](Docs/gameplay.mp4) and [Docs/unity-editor-scene-demo.mp4](Docs/unity-editor-scene-demo.mp4).
 
 ---
 
-## 🎮 Tính năng nổi bật (Key Features)
+## Core Features
 
-- **Cơ chế vẽ đường tự do (Line Drawing)**: Kéo thả ngón tay hoặc chuột để định tuyến đường đi linh hoạt cho từng chiếc xe thông qua `LineRenderer`.
-- **Hệ thống phân loại màu sắc (Color Matching)**: Kiểm tra điều kiện xe phải đỗ chính xác vào ô màu tương ứng (`ColorType`).
-- **Hệ thống kinh tế & Vật phẩm (Collectibles & Economy)**:
-  - Nhặt tiền xu xoay 3D (`CoinItem`, `CoinSpinner`) dọc đường đi.
-  - Thu thập chìa khóa (`Key`) mở khóa phần thưởng.
-- **Cửa hàng xe (Car Shop)**: Tích lũy xu để mở khóa các mẫu xe 3D đa dạng (Audi R8, Jeep Renegade 2016, Lamborghini).
-- **Hệ thống Level động (Dynamic Level Management)**: Tải và nạp màn chơi tự động từ `Resources/Levels/` mà không cần load lại Scene.
-- **Hiệu ứng trực quan & Hoạt ảnh (VFX & DOTween)**: Hiệu ứng pháo hoa ăn mừng khi thắng màn, tia lửa va chạm và hoạt ảnh bay tiền xu UI mượt mà.
-
----
-
-## 🏗️ Kiến trúc & Công nghệ (Tech Stack)
-
-- **Engine**: Unity 6 / Unity 2022.3 LTS (Universal Render Pipeline - URP).
-- **Plugins & Libraries**:
-  - **DOTween (HOTween v2)**: Xử lý tweening chuyển động xe và animation UI.
-  - **TextMesh Pro**: Hiển thị văn bản UI sắc nét chuẩn vector.
-- **Design Patterns**:
-  - `Singleton Pattern`: Quản lý các Manager trung tâm (`GameManager`, `CoinManager`, `LevelManager`, `CarShopManager`).
-  - `Object Pooling`: Tối ưu hiệu năng tái tạo hiệu ứng hạt VFX và tiền xu.
-  - `ScriptableObject Database`: Quản lý danh mục thông số xe `CarDatabase`.
-  - `State Pattern`: Quản lý vòng lặp trạng thái game (`Drawing`, `Moving`, `Win`, `GameOver`).
+* **Real-Time Path Drawing (`LineDrawer`):** Supports both Mouse and Touch via Unity's **New Input System**, projecting screen input onto the road plane with configurable edge padding, road-bounds clamping, and target snapping to matching parking slots.
+* **Modular Vehicle Architecture:** Each vehicle (`CarController`) is decoupled into single-responsibility components:
+  * `CarMovement` — waypoint traversal and speed control
+  * `CarPathHandle` — `LineRenderer` management and path distance tracking
+  * `CarVisual` — color palette synchronization across materials and UI
+  * `CarAnimation` — DOTween-powered idle, drive, and return-to-start animations
+  * `CarCollision` — crash detection and failure triggers
+* **Economy & Progression:**
+  * **5 Playable Levels** loaded dynamically from `Resources/Levels` with star ratings and best path-length tracking.
+  * **Car Shop (`CarShopManager` & `CarDatabase`):** `ScriptableObject`-driven vehicle catalog with unlock/selection persistence.
+  * **Coin & Key Rewards (`CoinManager`):** Animated UI coin pickups, chest/key progression, and `ISaveService`-backed persistence (`SaveSystem`).
+* **Object Pooling (`ObjectPool`):** Reusable pooling with prewarming and automatic `ParticleSystem` reset for coin pickups and victory VFX.
+* **Custom Unity Editor Tools (`Assets/Scripts/Editor`):**
+  * `PlayerPrefsViewerWindow` (`Tools/Park Master/PlayerPrefs Viewer`) for inspecting and resetting progression data in-editor.
+  * Automated FX & UI setup generators (`CreateCoinPickupFX`, `CreateWinEffectPrefab`, `SetupParkMasterUI`).
 
 ---
 
-## 📂 Cấu trúc Thư mục Dự Án (Project Structure)
+## Technical Highlights & Architecture
+
+* **Zero-GC Input & Raycasting:** Pre-allocated `RaycastHit[]` and `List<RaycastResult>` caches in `LineDrawer` avoid per-frame heap allocations during continuous drag input.
+* **Assembly Definitions (`.asmdef`):** Codebase is separated into `ParkMaster.Runtime`, `ParkMaster.Editor`, and `ParkMaster.Tests.EditMode` for faster incremental compilation and clean dependency boundaries.
+* **Decoupled Persistence (`ISaveService`):** Centralized `SaveKeys` and `SaveSystem` (`ISaveService` + `PlayerPrefsSaveService`) replace scattered `PlayerPrefs` calls and enable deterministic unit testing.
+* **EditMode Unit Tests:** NUnit tests in `Assets/Tests/EditMode` covering `SaveSystem`, `CarDatabase`, `ColorPalette`, and `PathMathUtility`.
+
+---
+
+## Project Structure
 
 ```text
-Park-Master/
-├── Assets/
-│   ├── Materials/         # Material và Shader URP
-│   ├── Models/            # Model xe 3D, tiền xu
-│   ├── Plugins/           # Thư viện DOTween
-│   ├── Prefabs/           # Prefab xe, slot đỗ xe, hiệu ứng VFX
-│   ├── Resources/         # Database xe và Prefab các Level (1-4)
-│   ├── Scenes/            # Scene gameplay chính 
-│   ├── Scripts/           # Toàn bộ mã nguồn C# tổ chức theo module
-│   └── Sprites/           # Icon UI, texture môi trường
-├── Docs/                  # Chứa 2 video demo (gameplay.mp4 & unity-editor-scene-demo.mp4)
-├── Packages/              # Unity Package Manager manifest
-└── ProjectSettings/       # Cấu hình dự án Unity
+Assets/
+├── Plugins/Demigiant/DOTween/   # DOTween animation library
+├── Prefabs/                     # Cars, Effects, Level, ParkingSlot & StartPoint prefabs
+├── Resources/
+│   ├── CarDatabase.asset        # ScriptableObject vehicle catalog
+│   └── Levels/                  # Level_01 .. Level_05 prefabs
+├── Scenes/                      # GamePlay.unity
+├── Scripts/
+│   ├── Car/                     # CarController, CarMovement, CarVisual, CarAnimation, ...
+│   ├── Coin/                    # CoinItem, CoinSpinner
+│   ├── Data/                    # SaveSystem (ISaveService, PlayerPrefsSaveService, SaveKeys)
+│   ├── Drawing/                 # LineDrawer, PathMathUtility, StartPointRing
+│   ├── Editor/                  # Custom Editor Windows & FX/UI generators
+│   ├── Managers/                # GameManager, LevelManager, CoinManager, CarShopManager, ObjectPool
+│   └── UI/                      # LevelSelectUI, LevelScrollManager, CarMenuUI, LevelCompleteUI
+└── Tests/
+    └── EditMode/                # NUnit EditMode unit tests
+```
+
+---
+
+## Getting Started
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/hienvukhac/Park-Master.git
+   ```
+2. Open the project in **Unity 6000.3.21f1** (Universal Render Pipeline).
+3. Open `Assets/Scenes/GamePlay.unity` and press **Play**.
+4. *(Optional)* Run EditMode tests via **Window → General → Test Runner → EditMode → Run All**.
+
+---
+
+## Controls
+
+* **Mouse / Touch Drag:** Draw a path from any vehicle (or its start ring) to a matching-color parking slot.
+* **Release:** Vehicles drive along their drawn paths automatically.

@@ -140,9 +140,9 @@ public class CreateWinEffectPrefab : MonoBehaviour
         pMain.loop = false;
         pMain.startLifetime = new ParticleSystem.MinMaxCurve(0.6f, 1.1f);
         pMain.startSpeed = new ParticleSystem.MinMaxCurve(2.5f, 4.5f);
-        pMain.startSize = new ParticleSystem.MinMaxCurve(0.25f, 0.45f); 
+        pMain.startSize = new ParticleSystem.MinMaxCurve(0.25f, 0.45f);
         pMain.startColor = new ParticleSystem.MinMaxGradient(Color.white, new Color(1f, 0.85f, 0.3f));
-        pMain.gravityModifier = 0.6f;  
+        pMain.gravityModifier = 0.6f;
         pMain.startRotation3D = false;
         pMain.startRotation = new ParticleSystem.MinMaxCurve(0f, 360f * Mathf.Deg2Rad);
         pMain.scalingMode = ParticleSystemScalingMode.Hierarchy;
@@ -151,7 +151,7 @@ public class CreateWinEffectPrefab : MonoBehaviour
         pShape.shapeType = ParticleSystemShapeType.Cone;
         pShape.angle = 30f;
         pShape.radius = 0.15f;
-        pShape.rotation = new Vector3(-90f, 0f, 0f);  
+        pShape.rotation = new Vector3(-90f, 0f, 0f);
 
         var pEmission = sparkPS.emission;
         pEmission.rateOverTime = 0;
@@ -171,7 +171,7 @@ public class CreateWinEffectPrefab : MonoBehaviour
         pColorOverLife.color = sparkGrad;
 
         var pRenderer = sparkObj.GetComponent<ParticleSystemRenderer>();
-        pRenderer.renderMode = ParticleSystemRenderMode.Billboard;  
+        pRenderer.renderMode = ParticleSystemRenderMode.Billboard;
         pRenderer.sharedMaterial = particleMat;
 
         string prefabPath = "Assets/Prefabs/ParkingWinEffect.prefab";

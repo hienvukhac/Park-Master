@@ -57,8 +57,8 @@ public class CreateCoinPickupFX : MonoBehaviour
         Material particleMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/Mat_WinParticle.mat");
         if (particleMat == null)
         {
-            particleMat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit") 
-                                     ?? Shader.Find("Universal Render Pipeline/Unlit") 
+            particleMat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit")
+                                     ?? Shader.Find("Universal Render Pipeline/Unlit")
                                      ?? Shader.Find("Sprites/Default"));
             AssetDatabase.CreateAsset(particleMat, "Assets/Materials/Mat_CoinParticle.mat");
         }

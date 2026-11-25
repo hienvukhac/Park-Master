@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using ParkMaster.Drawing;
 
 public class LineDrawer : MonoBehaviour
 {
@@ -127,11 +128,7 @@ public class LineDrawer : MonoBehaviour
         roadPlane = new Plane(Vector3.up, new Vector3(0f, drawPlaneY, 0f));
     }
 
-    private static float SqrDistXZ(Vector3 a, Vector3 b)
-    {
-        float dx = a.x - b.x, dz = a.z - b.z;
-        return dx * dx + dz * dz;
-    }
+    private static float SqrDistXZ(Vector3 a, Vector3 b) => PathMathUtility.SqrDistXZ(a, b);
 
     private List<CarController> GetAllCars() =>
         GameManager.HasInstance && GameManager.Instance.allCars != null
@@ -376,15 +373,6 @@ public class LineDrawer : MonoBehaviour
             currentCar.AddPoint(slotCenter, drawPlaneY);
             hasReachedTarget = true;
 
-            if (currentCar.pathPoints.Count >= 2)
-            {
-                Vector3 initialDir = currentCar.pathPoints[1] - currentCar.pathPoints[0];
-                initialDir.y = 0;
-                if (initialDir.sqrMagnitude > 0.005f)
-                {
-                    currentCar.transform.rotation = Quaternion.LookRotation(initialDir);
-                }
-            }
             return;
         }
 
@@ -415,15 +403,6 @@ public class LineDrawer : MonoBehaviour
                     currentCar.AddPoint(roadPoint, drawPlaneY);
                 }
 
-                if (currentCar.pathPoints.Count >= 2)
-                {
-                    Vector3 initialDir = currentCar.pathPoints[1] - currentCar.pathPoints[0];
-                    initialDir.y = 0;
-                    if (initialDir.sqrMagnitude > 0.005f)
-                    {
-                        currentCar.transform.rotation = Quaternion.LookRotation(initialDir);
-                    }
-                }
             }
         }
         else if (IsPointSupportedByRoad(roadPoint))
@@ -467,6 +446,15 @@ public class LineDrawer : MonoBehaviour
             return;
         }
 
+        if (carToDrive.pathPoints.Count >= 2)
+        {
+            Vector3 initialDir = carToDrive.pathPoints[1] - carToDrive.pathPoints[0];
+            initialDir.y = 0;
+            if (initialDir.sqrMagnitude > 0.005f)
+            {
+                carToDrive.transform.rotation = Quaternion.LookRotation(initialDir);
+            }
+        }
         if (!autoDriveOnRelease) return;
 
         var allCars = new List<CarController>(GetAllCars());
